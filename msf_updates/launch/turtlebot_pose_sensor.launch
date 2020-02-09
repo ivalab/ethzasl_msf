@@ -1,0 +1,88 @@
+<launch>
+
+<arg name="topic_slam_pose" default = "/ORB_SLAM/camera_pose_in_imu"/>
+<arg name="link_slam_base" default = "mynteye_left_optical_frame"/>
+<arg name="imu_type" default = "mpu6000"/>
+
+<param name="/use_sim_time" value="false" />
+
+<node name="odom_reset" pkg="rostopic" type="rostopic" args="pub /mobile_base/commands/reset_odometry std_msgs/Empty '{}'" />
+
+
+<!-- call baselin ORB-SLAM for vision-based state estimation
+<node pkg="gf_orb_slam2" type="RGBD" name="visual_slam" args="$(find gf_orb_slam2)/../ORB_Data/ORBvoc.bin $(find gf_orb_slam2)/../ORB_Data/Gazebo_yaml/kinect_rgbd.yaml 3000 true /camera/rgb/image /camera/depth_registered/image_raw /home/yipu/Debug_Log/test">
+  </node>
+ -->
+
+<!-- call GF-ORB-SLAM for vision-based state estimation  -->
+<node pkg="gf_orb_slam2" type="Stereo" name="visual_slam" args="$(find gf_orb_slam2)/../ORB_Data/ORBvoc.bin $(find gf_orb_slam2)/../ORB_Data/MYNT_yaml/mynteye_stereo_v2.yaml 240 false false /mynteye/left/image_raw /mynteye/right/image_raw /home/yipu/Debug_Log/test /home/yipu/MYNT_4th_floor_map3D_run2/">
+  </node>
+ 
+  
+<!-- call msf for visual-inertial state estimation -->
+    <node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
+           
+          <remap from="msf_core/imu_state_input" to="/mynteye/imu/data_raw" />
+<!--
+          <remap from="msf_core/imu_state_input" to="/mobile_base/sensors/imu_data" />
+-->
+          <remap from="msf_updates/pose_with_covariance_input" to="/ORB_SLAM/camera_pose_in_imu" />
+          <rosparam file="$(find msf_updates)/turtlebot_pose_sensor_fix.yaml"/>
+<!-- 
+          <remap from="/msf_core/odometry" to="/odom" />
+-->
+    </node>
+
+<!-- convert msf output to odom message  -->
+<!-- 
+<node name="odom_converter" pkg="odometry_converter" type="odom_converter" output="screen">
+  <param name="pose_topic" value="/msf_core/odometry"/>
+  <param name="odom_topic" value="odom"/>
+  <param name="pose_link" value="base_footprint"/>
+  <param name="odom_link" value="visual/base_footprint"/>
+</node> 
+-->
+<node name="odom_converter" pkg="odometry_converter" type="odom_converter" output="screen">
+  <param name="pose_topic" value="/msf_core/odometry"/>
+  <param name="odom_topic" value="visual/odom"/>
+  <param name="pose_link" value="base_footprint"/>
+  <param name="cam_link" value="$(arg link_slam_base)"/>
+</node>
+
+<node name="visual_robot_publisher" type="robot_state_publisher" pkg="robot_state_publisher">
+  <param name="tf_prefix" value="visual"/>
+</node>
+
+<!-- initialize msf -->
+<node pkg="rosservice" type="rosservice" name="initialize" args="call --wait /msf_pose_sensor/pose_sensor/initialize_msf_scale 1"/>
+
+<!--
+<node name="turtlebot_controller" pkg="turtlebot_trajectory_controller" type="trajectory_controller_node" output="screen" args="" >
+    <remap from="odom" to="visual/odom"/>
+</node>
+
+  <node name="turtlebot_trajectory_testing" pkg="turtlebot_trajectory_testing" type="send_test_trajectory" output="screen" args="_fw_vel:=1.5 _waypoint_yaml:=/home/yipuzhao/catkin_ws/src/turtlebot_trajectory_testing/config/line.yaml" >
+  </node>
+-->
+
+
+<!-- publish global map for planning -->
+<include file="$(find nav_demos)/launch/includes/map_server.launch.xml"/>
+
+
+<!-- publish tf from map to odom -->
+<!-- TODO figure out the right fusion param -->
+<!-- TODO the rotation between map and odom should be identical, or at most with some yaw -->
+<!-- 19.0, -11.0 0.18 1 0 0 0 -->
+<!--
+<node pkg="tf" type="static_transform_publisher" name="map_to_odom_tf" args="19.5 -10.8 0 0 0 -0.03 1 map odom 1" />
+ -->
+<node pkg="tf" type="static_transform_publisher" name="map_to_odom_tf" args="19.0, -11.0 0 0 0 0 1 map odom 1" />
+
+<!--
+<node pkg="tf" type="static_transform_publisher" name="odom_to_ORB_tf" args="0 0 0 0.5 0.5 0.5 0.5 odom ORB_SLAM/World 1" />
+ -->
+
+<node pkg="tf" type="static_transform_publisher" name="link_two_trees_tf" args="0 0 0 0 0 0 1 visual/base_footprint base_footprint  1" />
+
+</launch>

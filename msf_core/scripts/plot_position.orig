@@ -10,4 +10,8 @@ fi
 echo " ### plotting position x y z [m] ###"
 echo " ### buffer = " $T "sec"
 
+<<<<<<< HEAD
 rqt_plot /msf_core/pose/pose/position[0]:position[1]:position[2]
+=======
+rxplot msf_core/state_out/data[0]:data[1]:data[2] -b $T -t "position" -l x,y,z 
+>>>>>>> 5d916120c3e4df5b1ea136c2516c6ad1e3f9bf78

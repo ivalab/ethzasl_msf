@@ -1,0 +1,159 @@
+data_playback: false             # Set to true for playback, set to false on the real system.
+
+##############################
+#########IMU PARAMETERS#######
+##############################
+# The IMU measurement model used in msf contains two types of sensor errors, 
+# a high frequency additive white noise and 
+# a slower varying sensor bias.  
+# See the following link for more information 
+# https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model-and-Intrinsics
+# 
+# The white noise is characterized with the continuous time noise spectral density. 
+# The noise spectral density is sometime also referred to as noise density.
+# The units of the noise spectral density are:
+#  acc:  [m/s^2/sqrt(Hz)]
+#  gyro: [rad/s/sqrt(Hz)]
+# The noise spectral density can be found in the datasheet of the IMU.
+# 
+# The variation of the bias is characterized as a random walk. 
+# See https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model-and-Intrinsics for more information
+# The units of the random walk are:
+#  acc:  [m/s^3/sqrt(Hz)]
+#  gyro: [rad/s^2/sqrt(Hz)]
+ 
+# ###### ADIS 16448
+# core/core_noise_acc: 0.0022563    # [m/s^2/sqrt(Hz)] 
+# core/core_noise_gyr: 0.0004       # [rad/s/sqrt(Hz)] 
+
+# core/core_fixed_bias: false
+# core/core_noise_accbias: 8e-5     # [m/s^3/sqrt(Hz)]
+# core/core_noise_gyrbias: 3e-6     # [rad/s^2/sqrt(Hz)]
+
+# ###### mpu6000
+# core/core_noise_acc: 0.03924    # [m/s^2/sqrt(Hz)] mpu6000 datasheet
+# core/core_noise_gyr: 0.00276  # [rad/s/sqrt(Hz)] mpu6000 datasheet
+
+# core/core_fixed_bias: false
+# core/core_noise_gyrbias: 3e-4     # For fixed bias we do not need process noise.
+# core/core_noise_accbias: 8e-3     # For fixed bias we do not need process noise.
+
+
+core/core_noise_acc: 4.0000e-1    # [m/s^2/sqrt(Hz)] 
+core/core_noise_gyr: 3.4e-02       # [rad/s/sqrt(Hz)] 
+
+core/core_fixed_bias: false
+core/core_noise_accbias: 6.0000e-1     # [m/s^3/sqrt(Hz)]
+core/core_noise_gyrbias: 3.8e-03     # [rad/s^2/sqrt(Hz)]
+
+
+
+# core/core_noise_acc: 4.0000e+1    # [m/s^2/sqrt(Hz)] 
+# core/core_noise_gyr: 3.4       # [rad/s/sqrt(Hz)] 
+
+# core/core_fixed_bias: false
+# core/core_noise_accbias: 6.0000e+2     # [m/s^3/sqrt(Hz)]
+# core/core_noise_gyrbias: 3.8e-01     # [rad/s^2/sqrt(Hz)]
+
+
+
+
+# core/core_noise_acc: 4.0000e-3    # [m/s^2/sqrt(Hz)] 
+# core/core_noise_gyr: 3.4e-04       # [rad/s/sqrt(Hz)] 
+
+# core/core_fixed_bias: false
+# core/core_noise_accbias: 6.0000e-3     # [m/s^3/sqrt(Hz)]
+# core/core_noise_gyrbias: 3.8e-05     # [rad/s^2/sqrt(Hz)]
+
+
+#######################################
+#########Pose Sensor Parameters #######
+#######################################
+pose_sensor/pose_absolute_measurements: true
+pose_sensor/pose_measurement_world_sensor: true  # Selects if sensor measures its position 
+                                                  # w.r.t. world (true, e.g. Vicon) or the position 
+                                                  # of the world coordinate system w.r.t. the 
+                                                  # sensor (false, e.g. ethzasl_ptam).
+pose_sensor/pose_delay: 0.03                      # [s] delay of pose sensor w.r.t. imu
+
+# For the pose sensor noise levels use the std deviation the units are
+#  position: [m]
+#  orientation: [rad]
+pose_sensor/pose_use_fixed_covariance: true
+pose_sensor/pose_noise_meas_p: 0.005             # [m]
+pose_sensor/pose_noise_meas_q: 0.005             # [rad]
+
+pose_sensor/pose_initial_scale: 1
+pose_sensor/pose_fixed_scale: true
+pose_sensor/pose_noise_scale: 0.0     
+
+# Transformation that expresses the position and orientation of the gravity aligned world frame 
+# w.r.t the vision/camera frame
+pose_sensor/pose_fixed_p_wv: true              
+pose_sensor/pose_noise_p_wv: 0.01                  
+pose_sensor/pose_fixed_q_wv: true
+pose_sensor/pose_noise_q_wv: 0.01                  
+
+# Transformation that expresses the position and orientation of the pose-sensor w.r.t. the IMU 
+# frame of reference, expressed in the IMU frame of reference.
+pose_sensor/pose_fixed_p_ic: true
+pose_sensor/pose_noise_p_ic: 0.01
+pose_sensor/pose_fixed_q_ic: true
+pose_sensor/pose_noise_q_ic: 0.00
+
+# - Translation: [-0.041, 0.267, 0.143]
+# - Rotation: in Quaternion [0.500, -0.500, 0.500, 0.500]
+
+# pose_sensor/init/q_ic/w: 0.500
+# pose_sensor/init/q_ic/x: -0.500
+# pose_sensor/init/q_ic/y: 0.500
+# pose_sensor/init/q_ic/z: -0.500
+
+# pose_sensor/init/p_ic/x: -0.041
+# pose_sensor/init/p_ic/y: 0.267
+# pose_sensor/init/p_ic/z: 0.143
+
+# - Translation: [-0.087, 0.021, 0.287]
+# - Rotation: in Quaternion [-0.500, 0.500, -0.500, 0.500]
+
+# pose_sensor/init/q_ic/w: 0.500
+# pose_sensor/init/q_ic/x: -0.500
+# pose_sensor/init/q_ic/y: 0.500
+# pose_sensor/init/q_ic/z: -0.500
+
+# pose_sensor/init/p_ic/x: -0.087
+# pose_sensor/init/p_ic/y: 0.021
+# pose_sensor/init/p_ic/z: 0.287
+
+# - Translation: [0.021, 0.287, 0.087]
+# - Rotation: in Quaternion [0.500, -0.500, 0.500, 0.500]
+
+# pose_sensor/init/q_ic/w: 0.5
+# pose_sensor/init/q_ic/x: -0.5
+# pose_sensor/init/q_ic/y: -0.5
+# pose_sensor/init/q_ic/z: -0.5
+
+pose_sensor/init/q_ic/w: 0.5
+pose_sensor/init/q_ic/x: -0.5
+pose_sensor/init/q_ic/y: 0.5
+pose_sensor/init/q_ic/z: -0.5
+
+# pose_sensor/init/q_ic/w: 1
+# pose_sensor/init/q_ic/x: 0
+# pose_sensor/init/q_ic/y: 0
+# pose_sensor/init/q_ic/z: 0
+
+# for Asus xtion
+# pose_sensor/init/p_ic/x: -0.087
+# pose_sensor/init/p_ic/y: 0.021
+# pose_sensor/init/p_ic/z: 0.287
+
+# for kinect
+# pose_sensor/init/p_ic/x: -0.143
+# pose_sensor/init/p_ic/y: -0.074
+# pose_sensor/init/p_ic/z: 0.267
+
+# for mynteye
+pose_sensor/init/p_ic/x: 0
+pose_sensor/init/p_ic/y: 0
+pose_sensor/init/p_ic/z: 0

@@ -93,9 +93,12 @@ class IMUHandler_ROS : public IMUHandler<EKFState_T> {
     static int lastseq = constants::INVALID_SEQUENCE;
     if (static_cast<int>(msg->header.seq) != lastseq + 1
         && lastseq != constants::INVALID_SEQUENCE) {
-      MSF_WARN_STREAM(
-          "msf_core: imu message drop curr seq:" << msg->header.seq
-              << " expected: " << lastseq + 1);
+      // NOTE
+      // suppress msf imu dropping warning for better diagonis
+      //
+      // MSF_WARN_STREAM(
+      //     "msf_core: imu message drop curr seq:" << msg->header.seq
+      //         << " expected: " << lastseq + 1);
     }
     lastseq = msg->header.seq;
 

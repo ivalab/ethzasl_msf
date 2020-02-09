@@ -1,0 +1,19 @@
+<launch>
+
+
+<!-- call ORB-SLAM for vision-based state estimation -->
+<node pkg="gf_orb_slam2" type="Mono" name="visual_slam" args=" /home/yipu/catkin_ws/src/ORB_Data/ORBvoc.bin /home/yipu/catkin_ws/src/ORB_Data/EuRoC_yaml/EuRoC_lmk800.yaml 800 true /cam0/image_raw /home/yipu/catkin_ws/src/GF_ORB_SLAM2/tmp">
+  </node>
+
+
+    <node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
+           
+          <remap from="msf_core/imu_state_input" to="/imu0" />
+          <remap from="msf_updates/pose_with_covariance_input" to="/ORB_SLAM/camera_pose" />
+          <rosparam file="$(find msf_updates)/EuRoC_pose_sensor_fix.yaml"/>
+    </node>
+
+
+    <node pkg="rosservice" type="rosservice" name="initialize" args="call --wait /msf_pose_sensor/pose_sensor/initialize_msf_scale 1"/>
+    
+</launch>
