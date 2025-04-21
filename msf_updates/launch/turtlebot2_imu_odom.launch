@@ -1,0 +1,34 @@
+<launch>
+
+<arg name="topic_imu"        default="/camera/imu"/>
+<arg name="topic_odom"       default="/odom"      />
+<arg name="topic_pose"       default="/odom_pose" />
+<arg name="topic_fused_odom" default="/fused_odom"/>
+
+<!-- <node pkg="tf" type="static_transform_publisher" name="base_to_camera" args="0.114 0.007 0.488 0 0 0 base_footprint camera_link 50" /> -->
+
+<!-- call imu transformation -->
+<!-- <node pkg="imu_transformer" type="imu_transformer_node" name="imu_transformer_node">
+    <param name="target_frame" value="base_footprint"/>
+    <remap from="/imu_in/data" to="/camera/imu"/>
+    <remap from="/imu_out/data" to="/imu0"/>
+</node> -->
+
+<!-- call odom to pose converter -->
+<node name="odom_to_pose" pkg="msf_updates" type="odom_to_pose.py">
+    <remap from="/odom" to="$(arg topic_odom)"/>
+    <remap from="/pose" to="$(arg topic_pose)"/>
+</node>
+
+<!-- call msf -->
+<node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
+    <remap from="msf_core/imu_state_input" to="$(arg topic_imu)" />
+    <remap from="msf_updates/pose_with_covariance_input" to="$(arg topic_pose)" />
+    <remap from="/msf_core/odometry" to="$(arg topic_fused_odom)" />
+    <rosparam file="$(find msf_updates)/turtlebot2_imu_odom.yaml"/> 
+</node>
+
+<!-- initialize msf -->
+<node pkg="rosservice" type="rosservice" name="initialize" args="call --wait /msf_pose_sensor/pose_sensor/initialize_msf_scale 1"/>
+
+</launch>

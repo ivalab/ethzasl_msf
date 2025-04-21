@@ -3,6 +3,7 @@
 <arg name="topic_slam_pose" default = "/ORB_SLAM/camera_pose_in_imu"/>
 <arg name="link_slam_base" default = "left_camera_frame"/>
 <arg name="imu_type" default = "mpu6000"/>
+<arg name="topic_imu" default = "/imu0"/>
 
 <param name="/use_sim_time" value="true" />
 
@@ -10,7 +11,7 @@
 <!-- call msf for visual-inertial state estimation -->
     <node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
            
-          <remap from="msf_core/imu_state_input" to="/imu0" />
+          <remap from="msf_core/imu_state_input" to="$(arg topic_imu)" />
           <remap from="msf_updates/pose_with_covariance_input" to="$(arg topic_slam_pose)" />
           <rosparam file="$(find msf_updates)/gazebo_stereo_$(arg imu_type)_fix.yaml"/>
 <!-- 
