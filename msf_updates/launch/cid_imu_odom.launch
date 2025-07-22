@@ -1,0 +1,38 @@
+<launch>
+
+    <arg name="topic_raw_imu" default="/imu"/>
+    <arg name="topic_raw_odom" default="/odom"/>
+    <arg name="topic_msf_in_pose" default="/msf_in_pose"/>
+    <arg name="topic_msf_in_imu" default="/msf_in_imu"/>
+    <arg name="output_dir" default="/tmp/msf"/>
+    <arg name="dataset" default="nothing"/>
+
+    <param name="/use_sim_time" value="true" />
+
+    <node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
+        <remap from="msf_core/imu_state_input" to="$(arg topic_msf_in_imu)" />
+        <remap from="msf_updates/pose_with_covariance_input" to="$(arg topic_msf_in_pose)" />
+        <rosparam file="$(find msf_updates)/cid_imu_odom.yaml"/>
+<!-- 
+          <remap from="/msf_core/odometry" to="/odom" />
+-->
+    </node>
+
+    <node name="odom_to_pose" pkg="msf_updates" type="odom_to_pose.py" output="screen">
+        <remap from="/odom" to="$(arg topic_raw_odom)" />
+        <remap from="/pose" to="$(arg topic_msf_in_pose)" />
+        <remap from="/fused_odom" to="/msf_core/odometry" />
+        <param name="dataname" value="$(arg dataset)"/>
+        <param name="output_dir" value="$(arg output_dir)" />
+    </node>
+
+    <node pkg="imu_transformer" type="imu_transformer_node" name="imu_transformer_node">
+        <param name="target_frame" value="base_link"/>
+        <remap from="/imu_in/data" to="$(arg topic_raw_imu)"/>
+        <remap from="/imu_out/data" to="$(arg topic_msf_in_imu)"/>
+    </node>
+
+    <!-- initialize msf -->
+    <node pkg="rosservice" type="rosservice" name="initialize" args="call --wait /msf_pose_sensor/pose_sensor/initialize_msf_scale 1"/>
+
+</launch>
