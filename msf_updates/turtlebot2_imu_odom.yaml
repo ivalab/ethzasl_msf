@@ -78,11 +78,21 @@ pose_sensor/pose_noise_q_ic: 0.00
 
 # - Translation: [-0.087, 0.021, 0.287]
 # - Rotation: in Quaternion [-0.500, 0.500, -0.500, 0.500]
-pose_sensor/init/q_ic/w: 0.500
-pose_sensor/init/q_ic/x: -0.500
-pose_sensor/init/q_ic/y: 0.500
-pose_sensor/init/q_ic/z: -0.500
+# pose_sensor/init/q_ic/w: 0.500
+# pose_sensor/init/q_ic/x: -0.500
+# pose_sensor/init/q_ic/y: 0.500
+# pose_sensor/init/q_ic/z: -0.500
 
-pose_sensor/init/p_ic/x: 0.01
-pose_sensor/init/p_ic/y: 0.493
-pose_sensor/init/p_ic/z: -0.102
+# pose_sensor/init/p_ic/x: 0.01
+# pose_sensor/init/p_ic/y: 0.493
+# pose_sensor/init/p_ic/z: -0.102
+
+
+pose_sensor/init/q_ic/w: 1.0
+pose_sensor/init/q_ic/x: 0.0
+pose_sensor/init/q_ic/y: 0.0
+pose_sensor/init/q_ic/z: 0.0
+
+pose_sensor/init/p_ic/x: 0.0
+pose_sensor/init/p_ic/y: 0.0
+pose_sensor/init/p_ic/z: 0.0

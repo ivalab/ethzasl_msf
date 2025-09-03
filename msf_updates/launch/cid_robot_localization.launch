@@ -1,0 +1,64 @@
+<launch>
+
+    <arg name="topic_raw_imu"             default="/imu"/>
+    <arg name="topic_raw_odom"            default="/odom"/>
+    <arg name="topic_fused_odom"          default="/fused_odom"/>
+    <arg name="topic_transformed_imu"     default="/imu_transformed"/>
+    <arg name="topic_filtered_imu"        default="/imu_filtered"/>
+    <arg name="use_madgwick"              default="true"/>
+    <arg name="output_dir"                default="/tmp/msf"/>
+    <arg name="dataset"                   default="nothing"/>
+
+    <param name="/use_sim_time" value="true" />
+
+    <node pkg="imu_transformer" type="imu_transformer_node" name="imu_transformer_node">
+        <param name="target_frame" value="base_link"/>
+        <remap from="/imu_in/data" to="$(arg topic_raw_imu)"/>
+        <remap from="/imu_out/data" to="$(arg topic_transformed_imu)"/>
+    </node>
+
+    <node unless="$(arg use_madgwick)" pkg="imu_complementary_filter" type="complementary_filter_node" name="imu_complementary_filter" output="screen">
+        <!-- Input Topics -->
+        <remap from="imu/data_raw" to="$(arg topic_transformed_imu)"/>  <!-- Raw IMU topic -->
+        <remap from="imu/mag" to="/mag"/>                       <!-- Magnetometer (optional) -->
+        <remap from="imu/data" to="$(arg topic_filtered_imu)"/>
+
+        <!-- Key Tuning Parameters -->
+        <param name="gain_acc" value="0.05"/>       <!-- Accelerometer gain (low-pass), [0.01, 0.1], higher->trust acc more -->
+        <param name="gain_mag" value="0.01"/>       <!-- Magnetometer gain (if used) [0.01, 0.1] -->
+        <param name="publish_tf" value="false"/>    <!-- Disable TF if unused -->
+        <param name="fixed_frame" value="odom"/>    <!-- Reference frame -->
+        <param name="use_mag" value="false"/>       <!-- Disable if no magnetometer -->
+    </node>
+
+    <node if="$(arg use_madgwick)" pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_madgwick" output="screen">
+        <!-- Input Topics -->
+        <remap from="imu/data_raw" to="$(arg topic_transformed_imu)"/>  <!-- Raw IMU topic -->
+        <remap from="imu/mag" to="/mag"/>          <!-- Magnetometer (optional) -->
+        <remap from="imu/data" to="$(arg topic_filtered_imu)"/>
+
+        <!-- Key Tuning Parameters -->
+        <param name="gain" value="0.1"/>            <!-- Filter gain (default: 0.1), higher->faster convergece->more noisy -->
+        <param name="zeta" value="0.1"/>            <!-- Gyro bias estimation gain, higher->faster gyro bias correction, but may overcorrect -->
+        <param name="use_mag" value="false"/>       <!-- Disable if no magnetometer -->
+        <param name="publish_tf" value="false"/>    <!-- Disable TF if unused -->
+        <param name="fixed_frame" value="odom"/>    <!-- Reference frame -->
+        <param name="remove_gravitational_acceleration" value="false"/> <!-- Clean accel -->
+    </node>
+
+    <node name="odom_to_pose" pkg="msf_updates" type="odom_to_pose.py" output="screen">
+        <remap from="/fused_odom" to="$(arg topic_fused_odom)" />
+        <param name="dataname" value="$(arg dataset)"/>
+        <param name="output_dir" value="$(arg output_dir)" />
+    </node>
+
+
+    <!-- launch/ekf.launch -->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf">
+        <rosparam command="load" file="$(find msf_updates)/robot_localization_ekf.yaml" />
+        <remap from="odometry/filtered" to="$(arg topic_fused_odom)"/>
+        <param name="odom0" value="$(arg topic_raw_odom)"/>
+        <param name="imu0" value="$(arg topic_filtered_imu)"/>
+    </node>
+
+</launch>

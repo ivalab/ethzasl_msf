@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 import rospy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import (
+    PoseWithCovarianceStamped,
+    TransformStamped,
+)
 import numpy as np
 from pathlib import Path
+import tf2_ros
 
 
 class OdomToPoseConverter:
@@ -17,6 +21,10 @@ class OdomToPoseConverter:
 
         self.output_dir = rospy.get_param("~output_dir", "/mnt/DATA/experiments/msf/tsrb/odom_test")
         self.dataname = rospy.get_param("~dataname", "")
+        self.enable_tf = rospy.get_param("~enable_tf", False)
+        self.odom_frame = rospy.get_param("~odom_frame", "odom")
+        self.base_frame = rospy.get_param("~base_frame", "base_link")
+        self.br = tf2_ros.TransformBroadcaster()
         self.odom = []
         self.fused_odom = []
 
@@ -30,6 +38,16 @@ class OdomToPoseConverter:
 
     def fused_odom_callback(self, msg):
         self.fused_odom.append(self.to_pose(msg))
+
+        if self.enable_tf:
+            transform = TransformStamped()
+            transform.header.stamp = msg.header.stamp
+            transform.header.frame_id = self.odom_frame
+            transform.child_frame_id = self.base_frame
+            transform.transform.translation = msg.pose.pose.position
+            transform.transform.rotation = msg.pose.pose.orientation
+
+            self.br.sendTransform(transform)
 
     def to_pose(self, msg):
         return [

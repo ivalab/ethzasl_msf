@@ -55,8 +55,8 @@ pose_sensor/pose_delay: 1e-3                      # [s] delay of pose sensor w.r
 #  position: [m]
 #  orientation: [rad]
 pose_sensor/pose_use_fixed_covariance: true
-pose_sensor/pose_noise_meas_p: 0.01             # [m]
-pose_sensor/pose_noise_meas_q: 0.01             # [rad]
+pose_sensor/pose_noise_meas_p: 1e-4 # 0.01             # [m]
+pose_sensor/pose_noise_meas_q: 1e-4 # 0.01             # [rad]
 
 pose_sensor/pose_initial_scale: 1
 pose_sensor/pose_fixed_scale: true

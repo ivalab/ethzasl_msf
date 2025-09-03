@@ -1,0 +1,55 @@
+<launch>
+
+    <arg name="topic_raw_imu" default="/imu"/>
+    <!-- <arg name="topic_raw_odom" default="/odom"/> -->
+    <!-- <arg name="topic_msf_in_pose" default="/msf_in_pose"/> -->
+    <!-- <arg name="topic_msf_in_imu" default="/msf_in_imu"/> -->
+    <arg name="topic_complementary_imu" default="/imu_complementary" />
+    <arg name="topic_madgwick_imu" default="/imu_madgwick" />
+    <arg name="output_dir" default="/tmp/msf"/>
+    <arg name="dataset" default="nothing"/>
+    <arg name="rviz" default="false"/>
+
+    <param name="/use_sim_time" value="true" />
+
+
+  <node pkg="imu_complementary_filter" type="complementary_filter_node" name="imu_complementary_filter" output="screen">
+    <!-- Input Topics -->
+    <remap from="imu/data_raw" to="$(arg topic_raw_imu)"/>  <!-- Raw IMU topic -->
+    <remap from="imu/mag" to="/mag"/>                       <!-- Magnetometer (optional) -->
+    <remap from="imu/data" to="$(arg topic_complementary_imu)"/>
+
+    <!-- Key Tuning Parameters -->
+    <param name="gain_acc" value="0.05"/>       <!-- Accelerometer gain (low-pass), [0.01, 0.1], higher->trust acc more -->
+    <param name="gain_mag" value="0.01"/>       <!-- Magnetometer gain (if used) [0.01, 0.1] -->
+    <param name="publish_tf" value="false"/>    <!-- Disable TF if unused -->
+    <param name="fixed_frame" value="odom"/>    <!-- Reference frame -->
+    <param name="use_mag" value="false"/>       <!-- Disable if no magnetometer -->
+  </node>
+
+  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_madgwick" output="screen">
+    <!-- Input Topics -->
+    <remap from="imu/data_raw" to="$(arg topic_raw_imu)"/>  <!-- Raw IMU topic -->
+    <remap from="imu/mag" to="/mag"/>          <!-- Magnetometer (optional) -->
+    <remap from="imu/data" to="$(arg topic_madgwick_imu)"/>
+
+    <!-- Key Tuning Parameters -->
+    <param name="gain" value="0.1"/>            <!-- Filter gain (default: 0.1), higher->faster convergece->more noisy -->
+    <param name="zeta" value="0.1"/>            <!-- Gyro bias estimation gain, higher->faster gyro bias correction, but may overcorrect -->
+    <param name="use_mag" value="false"/>       <!-- Disable if no magnetometer -->
+    <param name="publish_tf" value="false"/>    <!-- Disable TF if unused -->
+    <param name="fixed_frame" value="odom"/>    <!-- Reference frame -->
+    <param name="remove_gravitational_acceleration" value="false"/> <!-- Clean accel -->
+  </node>
+
+  <node if="$(arg rviz)" pkg="rqt_plot" type="rqt_plot" name="rqt_plot" 
+        args="$(arg topic_complementary_imu)/orientation/w /$(arg topic_madgwick_imu)/orientation/w"/>
+
+    <node name="imu_logger" pkg="msf_updates" type="imu_logger.py" output="screen">
+        <param name="imu_num"     value="2"/>
+        <param name="/imu0_topic" value="$(arg topic_complementary_imu)" />
+        <param name="/imu1_topic" value="$(arg topic_madgwick_imu)" />
+        <param name="output_dir"  value="$(arg output_dir)" />
+        <param name="dataname"    value="$(arg dataset)"/>
+    </node>
+</launch>
