@@ -1,0 +1,38 @@
+<launch>
+
+    <arg name="topic_msf_in_pose" default="/slam_pose_topic"/>
+    <arg name="topic_msf_in_imu" default="/imu0"/>
+    <arg name="topic_fused_odom" default="/fused_odom"/>
+    <arg name="output_dir" default="/tmp/msf"/>
+    <arg name="dsol_dir" default="/tmp/dsol/MH_01_easy"/>
+    <arg name="dataset" default="MH_01_easy"/>
+    <arg name="yaml_file" default="EuRoC_pose_sensor_fix.yaml"/>
+
+    <param name="/use_sim_time" value="true" />
+
+    <!-- dsol -->
+    <include file="$(find dsol)/launch/dsol_odom_euroc.launch">
+        <arg name="save"      value="$(arg dsol_dir)"   />
+        <arg name="cell_size" value="19"                />
+    </include>
+
+    <node name="msf_pose_sensor" pkg="msf_updates" type="pose_sensor" clear_params="true" output="screen">
+        <rosparam file="$(find msf_updates)/$(arg yaml_file)"/>
+        <remap from="msf_core/imu_state_input" to="$(arg topic_msf_in_imu)" />
+        <remap from="msf_updates/pose_with_covariance_input" to="$(arg topic_msf_in_pose)" />
+        <remap from="/msf_core/odometry" to="$(arg topic_fused_odom)" />
+    </node>
+
+    <node name="odom_to_pose" pkg="msf_updates" type="odom_to_pose.py" output="screen">
+        <remap from="/odom"       to="/dummy_odom" />
+        <remap from="/pose"       to="/dummy_pose" />
+        <remap from="/fused_odom" to="$(arg topic_fused_odom)" />
+        <param name="dataname"   type="string" value="$(arg dataset)"/>
+        <param name="output_dir" type="string" value="$(arg output_dir)" />
+        <param name="enable_tf"  type="bool"   value="false"/>
+    </node>
+
+    <!-- initialize msf -->
+    <node pkg="rosservice" type="rosservice" name="initialize" args="call --wait /msf_pose_sensor/pose_sensor/initialize_msf_scale 1"/>
+
+</launch>
